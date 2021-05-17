@@ -1,0 +1,21 @@
+{
+  "name": "register-slash-command",
+  "version": "0.0.1",
+  "description": "Register /slash command for your Discord bot",
+  "main": "index.js",
+  "repository": "https://github.com/harshil1712/register-slash-command.git",
+  "author": "Harshil Agrawal <hey@harshil.dev> (https://harshil.dev)",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^8.0.0"
+  },
+  "bin": "./script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Discord",
+    "slash command",
+    "discord bot"
+  ]
+}
