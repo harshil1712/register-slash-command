@@ -7,7 +7,9 @@
   "author": "Harshil Agrawal <hey@harshil.dev> (https://harshil.dev)",
   "license": "MIT",
   "dependencies": {
-    "inquirer": "^8.0.0"
+    "axios": "^0.21.1",
+    "inquirer": "^8.0.0",
+    "node-fetch": "^2.6.1"
   },
   "bin": "./script.js",
   "scripts": {

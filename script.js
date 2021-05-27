@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 const inquirer = require('inquirer');
+const axios = require('axios');
+
+const URL = 'https://discord.com/api/v8/applications';
 
 const nameRegex = /^[\w-]{1,32}$/;
 
-let answers = {};
+let ans = {};
 
 console.log('🤖 Welcome to register-slash-command 🤖');
 
@@ -12,15 +15,11 @@ console.log(
 	'Please enter the following details to register your slash command'
 );
 
-// 1. Ask if it's for guild or global
-
-// 2. Get Bot name and description
-
 inquirer
 	.prompt([
 		{
 			type: 'list',
-			name: 'guidlOrGlobal',
+			name: 'guildOrGlobal',
 			message: 'Please select the scope of the slash command',
 			choices: [
 				{
@@ -68,14 +67,123 @@ inquirer
 			name: 'botToken',
 			message: 'Enter the bot token',
 		},
+		{
+			type: 'input',
+			name: 'applicationId',
+			message: 'Enter the Application ID',
+		},
 	])
 	.then((answers) => {
-		answers = answers;
-		console.log(answers);
+		const {
+			botToken,
+			commandName,
+			commandDescription,
+			applicationId,
+			guildOrGlobal,
+		} = answers;
+
+		let headers = {
+			Authorization: `Bot ${botToken}`,
+			'Content-Type': 'application/json',
+		};
+
+		let body = {
+			name: `${commandName}`,
+			description: `${commandDescription}`,
+		};
+
+		if (guildOrGlobal === 'guild') {
+			inquirer
+				.prompt([
+					{
+						type: 'input',
+						name: 'guildId',
+						message: 'Enter the Guild ID',
+					},
+				])
+				.then((text) => {
+					const { guildId } = text;
+					ans = { guildId, ...ans };
+
+					return registerForGuild(headers, body, applicationId, guildId);
+				})
+				.then((res) => {
+					res.err
+						? console.log('‼️ Your slash command was not registered ‼️')
+						: console.log(
+								'✨ Your slash command was successfully registered ✨'
+						  );
+				});
+		} else {
+			registerForGlobal(headers, body, applicationId).then((res) => {
+				res.err
+					? console.log('‼️ Your slash command was not registered ‼️')
+					: console.log('✨ Your slash command was successfully registered ✨');
+			});
+		}
 	});
 
-// 2. To Do: Get Bot options (sub commands) - name, description, required, choices
+const registerForGuild = async (header, body, applicationId, guildId) => {
+	const apiCall = `${URL}/${applicationId}/guilds/${guildId}/commands`;
+	const data = JSON.stringify(body);
+	const config = {
+		method: 'post',
+		url: apiCall,
+		headers: header,
+		data: data,
+	};
+	let err = false;
+	return axios(config)
+		.then(({ data }) => {
+			data.err = err;
+			return data;
+		})
+		.catch((error) => {
+			err = true;
+			if (error.response) {
+				// The request was made and the server responded with a status code
+				// that falls out of the range of 2xx
+				console.log(error.response.data);
+				console.log(error.response.status);
+				console.log(error.response.headers);
+			} else if (error.request) {
+				console.log(error.request);
+			} else {
+				// Something happened in setting up the request that triggered an Error
+				console.log('Error', error.message);
+			}
+			console.log(error.config);
+			return { err };
+		});
+};
 
-// 3. Application ID
-
-// 4. Token
+const registerForGlobal = async (header, body, applicationId) => {
+	const apiCall = `${URL}/${applicationId}/commands`;
+	const data = JSON.stringify(body);
+	const config = {
+		method: 'post',
+		url: apiCall,
+		headers: header,
+		data: data,
+	};
+	let err = false;
+	return axios(config)
+		.then(({ data }) => {
+			data.err = err;
+			return data;
+		})
+		.catch((error) => {
+			err = true;
+			if (error.response) {
+				console.log(error.response.data);
+				console.log(error.response.status);
+				console.log(error.response.headers);
+			} else if (error.request) {
+				console.log(error.request);
+			} else {
+				console.log('Error', error.message);
+			}
+			console.log(error.config);
+			return { err };
+		});
+};
